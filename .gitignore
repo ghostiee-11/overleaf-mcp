@@ -1,0 +1,17 @@
+docs/superpowers/plans/
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+.build/
+*.log
+!tests/fixtures/logs/*.log
+.DS_Store

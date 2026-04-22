@@ -1,0 +1,9 @@
+This is pdfTeX, Version 3.141592653
+(./main.tex
+LaTeX2e <2023-11-01>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls)
+./main.tex:5: Undefined control sequence.
+l.5 \undefinedthing
+                   {foo}
+?
+! Emergency stop.
