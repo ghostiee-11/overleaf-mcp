@@ -15,8 +15,13 @@ from overleaf_mcp.tools.compile import compile_file as _compile_file
 from overleaf_mcp.tools.explain_log import explain_log as _explain_log
 from overleaf_mcp.tools.files import list_tex_files, read_tex_file, write_tex_file
 from overleaf_mcp.tools.format import check_formatting, format_file, format_snippet
+from overleaf_mcp.tools.git_sync import overleaf_status as _overleaf_status
+from overleaf_mcp.tools.git_sync import pull_from_overleaf as _pull
+from overleaf_mcp.tools.git_sync import push_to_overleaf as _push
 from overleaf_mcp.tools.lint import lint_file
 from overleaf_mcp.tools.structure import get_project_structure as _get_project_structure
+from overleaf_mcp.tools.zip_bridge import export_overleaf_zip as _export_zip
+from overleaf_mcp.tools.zip_bridge import import_overleaf_zip as _import_zip
 
 
 class ConfigError(RuntimeError):
@@ -132,5 +137,33 @@ def build_server(env: Mapping[str, str]) -> tuple[FastMCP, Config, list[str]]:
     @_register("explain_log", "Parse a LaTeX log into structured errors with suggestions.")
     def _t_explain_log(log_text: str) -> dict:
         return _explain_log(log_text).model_dump()
+
+    # ZIP bridge — available in every mode
+    @_register("import_overleaf_zip", "Extract an Overleaf project zip into the project root.")
+    def _t_import_zip(zip_path: str) -> dict:
+        from pathlib import Path as _P
+        return _import_zip(config.project_root, _P(zip_path)).model_dump()
+
+    @_register("export_overleaf_zip", "Zip the project root for upload back to Overleaf.")
+    def _t_export_zip(out_path: str) -> dict:
+        from pathlib import Path as _P
+        return _export_zip(config.project_root, _P(out_path)).model_dump()
+
+    # Git sync — only when configured
+    if config.mode == "synced" and config.git_url and config.git_token:
+        git_url = config.git_url
+        git_token = config.git_token
+
+        @_register("pull_from_overleaf", "Clone or pull --rebase the Overleaf project.")
+        def _t_pull() -> dict:
+            return _pull(config.project_root, git_url, git_token).model_dump()
+
+        @_register("push_to_overleaf", "Stage all changes, commit with message, push.")
+        def _t_push(message: str) -> dict:
+            return _push(config.project_root, git_url, git_token, message).model_dump()
+
+        @_register("overleaf_status", "Branch, ahead/behind, dirty state.")
+        def _t_status() -> dict:
+            return _overleaf_status(config.project_root).model_dump()
 
     return server, config, tool_names
