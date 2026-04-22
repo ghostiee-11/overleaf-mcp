@@ -2,6 +2,10 @@
 
 Model Context Protocol server for LaTeX and Overleaf projects. Give Claude Code, GitHub Copilot, Google Antigravity, or any MCP-compatible AI the ability to read, format, lint, compile, and sync your LaTeX work.
 
+**See it work:** [docs/demo.md](docs/demo.md) has a 7-step walkthrough with real `claude -p` invocations — list projects, find 10 issues in a broken file across 5 tools, watch the agent autonomously fix them, push to Overleaf, verify on the server.
+
+![overleaf-mcp in Claude Code](docs/screenshot.png)
+
 ## Install
 
 ### The MCP server (Python 3.11+)

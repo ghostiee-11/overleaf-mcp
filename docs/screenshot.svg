@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" font-family="ui-monospace, Menlo, Monaco, monospace" font-size="13">
+  <defs>
+    <linearGradient id="chrome" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#3a3a3a"/>
+      <stop offset="1" stop-color="#2a2a2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="920" height="560" rx="12" fill="#1e1e1e"/>
+  <rect width="920" height="34" rx="12" fill="url(#chrome)"/>
+  <rect y="22" width="920" height="12" fill="#2a2a2a"/>
+  <circle cx="20" cy="17" r="6" fill="#ff5f56"/>
+  <circle cx="40" cy="17" r="6" fill="#ffbd2e"/>
+  <circle cx="60" cy="17" r="6" fill="#27c93f"/>
+  <text x="460" y="21" text-anchor="middle" fill="#a0a0a0" font-size="12">overleaf-mcp — claude code session</text>
+
+  <g fill="#d4d4d4">
+    <text x="20" y="62">$ <tspan fill="#569cd6">claude</tspan> -p <tspan fill="#ce9178">"pull my Overleaf project, check everything, fix issues, push back"</tspan></text>
+
+    <text x="20" y="94" fill="#808080">▸ calling mcp__overleaf__olsync_pull …</text>
+    <text x="20" y="112" fill="#9cdcfe">  { ok: true, files_extracted: 2, project_id: &lt;your-project-id&gt; }</text>
+
+    <text x="20" y="140" fill="#808080">▸ calling mcp__overleaf__check_math …</text>
+    <text x="20" y="158" fill="#f48771">  MATH_LEFT_RIGHT_UNPAIRED — \left (1) without matching \right at line 8</text>
+    <text x="20" y="176" fill="#f48771">  MATH_BRACKET_UNBALANCED  — unbalanced parens (0 open / 1 close) at line 8</text>
+
+    <text x="20" y="204" fill="#808080">▸ calling mcp__overleaf__check_figures …</text>
+    <text x="20" y="222" fill="#f48771">  FIG_NO_CAPTION, FIG_NO_LABEL, FIG_NO_CENTERING, FIG_NO_FLOAT_SPEC @ line 9</text>
+
+    <text x="20" y="250" fill="#808080">▸ calling mcp__overleaf__check_packages …</text>
+    <text x="20" y="268" fill="#f48771">  PKG_CONFLICT — subfig and subcaption conflict; prefer subcaption</text>
+
+    <text x="20" y="296" fill="#808080">▸ calling mcp__overleaf__read_tex_file main.tex …</text>
+    <text x="20" y="314" fill="#808080">▸ calling mcp__overleaf__write_tex_file main.tex  (fixed 7 issues)</text>
+
+    <text x="20" y="342" fill="#808080">▸ calling mcp__overleaf__olsync_push project_name="test_project_mcp" …</text>
+    <text x="20" y="360" fill="#9cdcfe">  { ok: true, files_uploaded: 2 }</text>
+
+    <text x="20" y="396" fill="#b5cea8">✓ Pulled your Overleaf project, fixed the unbalanced \left(, removed the</text>
+    <text x="20" y="414" fill="#b5cea8">  conflicting subfig package, added graphicx, and gave the figure [htbp]</text>
+    <text x="20" y="432" fill="#b5cea8">  placement, \centering, a \caption, and a \label. Changes pushed back to</text>
+    <text x="20" y="450" fill="#b5cea8">  Overleaf — visible in your web editor now.</text>
+
+    <text x="20" y="492" fill="#808080">tools called: olsync_pull, check_math, check_figures, check_packages,</text>
+    <text x="20" y="510" fill="#808080">              read_tex_file, write_tex_file, olsync_push  (7 tool calls)</text>
+
+    <text x="20" y="540" fill="#4ec9b0">$ <tspan fill="#d4d4d4">█</tspan></text>
+  </g>
+</svg>
