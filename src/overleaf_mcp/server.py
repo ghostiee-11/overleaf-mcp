@@ -11,6 +11,8 @@ from overleaf_mcp.tools.check_math import check_math as _check_math
 from overleaf_mcp.tools.check_packages import check_packages as _check_packages
 from overleaf_mcp.tools.check_refs import find_unused_labels_and_refs as _find_unused
 from overleaf_mcp.tools.check_tables import check_table as _check_table, suggest_table_fix as _suggest_table_fix
+from overleaf_mcp.tools.compile import compile_file as _compile_file
+from overleaf_mcp.tools.explain_log import explain_log as _explain_log
 from overleaf_mcp.tools.files import list_tex_files, read_tex_file, write_tex_file
 from overleaf_mcp.tools.format import check_formatting, format_file, format_snippet
 from overleaf_mcp.tools.lint import lint_file
@@ -122,5 +124,13 @@ def build_server(env: Mapping[str, str]) -> tuple[FastMCP, Config, list[str]]:
     @_register("find_unused_labels_and_refs", "Dangling refs, unused labels, orphan bib.")
     def _t_find_unused() -> dict:
         return _find_unused(config.project_root).model_dump()
+
+    @_register("compile", "Run latexmk on a LaTeX file; returns PDF path or parsed errors.")
+    def _t_compile(path: str) -> dict:
+        return _compile_file(config.project_root, path).model_dump()
+
+    @_register("explain_log", "Parse a LaTeX log into structured errors with suggestions.")
+    def _t_explain_log(log_text: str) -> dict:
+        return _explain_log(log_text).model_dump()
 
     return server, config, tool_names

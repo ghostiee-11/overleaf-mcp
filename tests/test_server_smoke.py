@@ -24,5 +24,7 @@ def test_builds_server_with_v0_1_tools(tmp_path: Path):
         "check_packages",
         "check_consistency",
         "find_unused_labels_and_refs",
+        "compile",
+        "explain_log",
     }
     assert expected.issubset(set(tool_names))
