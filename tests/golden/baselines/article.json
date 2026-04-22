@@ -1,0 +1,8 @@
+{
+  "check_math": {},
+  "check_figures": {},
+  "check_table": {},
+  "check_packages": {},
+  "check_consistency": {},
+  "find_unused_labels_and_refs": { "LABEL_UNUSED": 1 }
+}

@@ -1,0 +1,23 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\title{A Clean Journal Article}
+\author{Anonymous}
+\begin{document}
+\maketitle
+\section{Introduction}
+This article cites \cite{knuth1984}.
+\begin{equation}
+E = mc^2 \label{eq:einstein}
+\end{equation}
+See \eqref{eq:einstein}.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{example.png}
+  \caption{A figure.}
+  \label{fig:example}
+\end{figure}
+\bibliography{refs}
+\bibliographystyle{plain}
+\end{document}

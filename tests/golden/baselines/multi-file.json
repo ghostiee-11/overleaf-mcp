@@ -1,0 +1,12 @@
+{
+  "check_math": {},
+  "check_figures": {},
+  "check_table": {},
+  "check_packages": { "PKG_CONFLICT": 1 },
+  "check_consistency": {},
+  "find_unused_labels_and_refs": {
+    "REF_DANGLING": 1,
+    "LABEL_UNUSED": 1,
+    "BIB_UNUSED": 1
+  }
+}
