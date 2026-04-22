@@ -28,13 +28,31 @@ def _count_spec_columns(spec: str) -> int:
     return n
 
 
+_RULE_ONLY_RE = re.compile(
+    r"^\s*(?:\\hline|\\toprule|\\midrule|\\bottomrule|\\cmidrule(?:\{[^}]*\})?(?:\([^)]*\))?(?:\{[^}]*\})?)+\s*$"
+)
+
+
+def _strip_rule_commands(row: str) -> str:
+    # Remove leading booktabs/hline rule commands so a row like
+    # "\\toprule\n    Method & Accuracy" parses as two cells, not one.
+    return re.sub(
+        r"\\(?:hline|toprule|midrule|bottomrule|cmidrule(?:\{[^}]*\})?(?:\([^)]*\))?(?:\{[^}]*\})?)",
+        "",
+        row,
+    ).strip()
+
+
 def _parse_rows(body: str) -> list[list[str]]:
     raw_rows = [r.strip() for r in body.split("\\\\") if r.strip()]
     rows: list[list[str]] = []
     for r in raw_rows:
-        if re.match(r"^\\hline\b", r):
+        if _RULE_ONLY_RE.match(r):
             continue
-        rows.append([c.strip() for c in _AMP.split(r)])
+        cleaned = _strip_rule_commands(r)
+        if not cleaned:
+            continue
+        rows.append([c.strip() for c in _AMP.split(cleaned)])
     return rows
 
 
