@@ -38,11 +38,18 @@ Add to your MCP client config (example: Claude Code `~/.claude/mcp.json`):
 }
 ```
 
-## Tools (v0.1)
+## Tools (v0.2)
 
-- `detect_capabilities` — report which LaTeX binaries are available
-- `list_tex_files`, `read_tex_file`, `write_tex_file`
+**File/project:**
+- `detect_capabilities`, `list_tex_files`, `read_tex_file`, `write_tex_file`
+- `get_project_structure`
+
+**Formatting & linting:**
 - `format_file`, `format_snippet`, `check_formatting` (wraps `latexindent`)
 - `lint_file` (wraps `chktex`)
 
-Overleaf git sync, ZIP-bridge, compile, and custom checks arrive in later releases.
+**Static checks:**
+- `check_math`, `check_figures`, `check_table`, `suggest_table_fix`
+- `check_packages`, `check_consistency`, `find_unused_labels_and_refs`
+
+Compile tools and Overleaf sync arrive in later releases.
