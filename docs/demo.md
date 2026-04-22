@@ -1,4 +1,4 @@
-# overleaf-mcp — end-to-end demo
+# overleaf-mcp: end-to-end demo
 
 Each block below is a **real invocation** via `claude -p` against Claude Code + the installed MCP server, talking to a live Overleaf account. Agent-chosen tool calls; output unedited.
 
@@ -37,13 +37,13 @@ a markdown table with columns: Project | ID | Access." \
 
 > Example data. Real output shows each of your Overleaf projects by name and ID.
 
-Hits Overleaf's `/user/projects` JSON endpoint — no Premium needed, no scraping.
+Hits Overleaf's `/user/projects` JSON endpoint: no Premium needed, no scraping.
 
 ---
 
 ## 3. Full static-check sweep on a broken file
 
-Seed file (deliberately broken — 7 distinct problems):
+Seed file (deliberately broken. 7 distinct problems):
 
 ```tex
 \documentclass{article}
@@ -66,7 +66,7 @@ Cited: \cite{used}.
 $ claude -p "Use the overleaf MCP. Run a full check on main.tex: check_math,
 check_figures, check_packages on main.tex, plus check_consistency and
 find_unused_labels_and_refs on the project. For each finding report just:
-code — one-line description. Group by tool." \
+code, one-line description. Group by tool." \
   --allowedTools "mcp__overleaf__check_math,mcp__overleaf__check_figures,\
 mcp__overleaf__check_packages,mcp__overleaf__check_consistency,\
 mcp__overleaf__find_unused_labels_and_refs"
@@ -76,24 +76,24 @@ mcp__overleaf__find_unused_labels_and_refs"
 
 ```
 ### check_math (main.tex)
-- MATH_LEFT_RIGHT_UNPAIRED — \left (1) without matching \right at line 8
-- MATH_BRACKET_UNBALANCED — unbalanced parens (0 open / 1 close) at line 8
+- MATH_LEFT_RIGHT_UNPAIRED: \left (1) without matching \right at line 8
+- MATH_BRACKET_UNBALANCED: unbalanced parens (0 open / 1 close) at line 8
 
 ### check_figures (main.tex)
-- FIG_NO_CAPTION — figure missing \caption at line 9
-- FIG_NO_LABEL — figure missing \label at line 9
-- FIG_NO_CENTERING — figure missing \centering at line 9
-- FIG_NO_FLOAT_SPEC — figure missing float placement like [htbp] at line 9
+- FIG_NO_CAPTION: figure missing \caption at line 9
+- FIG_NO_LABEL: figure missing \label at line 9
+- FIG_NO_CENTERING: figure missing \centering at line 9
+- FIG_NO_FLOAT_SPEC: figure missing float placement like [htbp] at line 9
 
 ### check_packages (main.tex)
-- PKG_CONFLICT — subfig and subcaption conflict; prefer subcaption at line 3
+- PKG_CONFLICT: subfig and subcaption conflict; prefer subcaption at line 3
 
 ### check_consistency (project)
-- CONS_DASH_STYLE — use -- (en-dash) for numeric ranges, not - at main.tex:7
+- CONS_DASH_STYLE: use -- (en-dash) for numeric ranges, not - at main.tex:7
 
 ### find_unused_labels_and_refs (project)
-- LABEL_UNUSED — \label{sec:intro} never referenced at main.tex:6
-- BIB_UNUSED — bib entry orphan_entry never cited at refs.bib:2
+- LABEL_UNUSED: \label{sec:intro} never referenced at main.tex:6
+- BIB_UNUSED: bib entry orphan_entry never cited at refs.bib:2
 ```
 
 10 findings from 5 tools in one agent turn.
@@ -121,17 +121,17 @@ file:line and a one-line suggestion." \
 Errors: 2 · Warnings: 1
 
 ### Errors
-- ./main.tex:12 — Undefined control sequence (\mycustom): typo or missing
+- ./main.tex:12. Undefined control sequence (\mycustom): typo or missing
   \usepackage; check spelling or add the defining package to the preamble.
-- ./main.tex:20 — Missing $ inserted: math used in text mode; wrap the
+- ./main.tex:20. Missing $ inserted: math used in text mode; wrap the
   expression in $...$ or \(...\) (often caused by _ / ^ outside math).
 
 ### Warnings
-- ./main.tex:30–32 — Overfull \hbox (15.0pt too wide): line doesn't fit;
+- ./main.tex:30–32. Overfull \hbox (15.0pt too wide): line doesn't fit;
   rephrase, allow hyphenation (\-), or use \sloppy / adjust margins.
 ```
 
-No latexmk needed — pure-parser tool that works on any LaTeX log text.
+No latexmk needed; pure-parser tool that works on any LaTeX log text.
 
 ---
 
@@ -212,7 +212,7 @@ project_name='test_project_mcp'. Report: success flag, files_uploaded count." \
 - files_uploaded: 2 (main.tex, refs.bib)
 ```
 
-**Independent verification** — re-download the project from Overleaf's server
+**Independent verification**: re-download the project from Overleaf's server
 (via the documented `/project/{id}/download/zip` endpoint, not the MCP) and
 inspect the content:
 

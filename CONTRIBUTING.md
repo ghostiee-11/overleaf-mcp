@@ -17,7 +17,7 @@ Install `latexindent` / `chktex` / `latexmk`, then just run `uv run pytest`. Tes
 
 ## Manual Overleaf sync smoke test
 
-(Cannot be automated in CI — requires real Overleaf credentials.)
+(Cannot be automated in CI; requires real Overleaf credentials.)
 
 1. Create a scratch Overleaf project.
 2. Enable Git Integration in Overleaf account settings, generate a token.
