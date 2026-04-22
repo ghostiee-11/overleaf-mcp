@@ -203,7 +203,10 @@ def build_server(env: Mapping[str, str]) -> tuple[FastMCP, Config, list[str]]:
         "List Overleaf projects visible to the logged-in ols session.",
     )
     def _t_olsync_list() -> dict:
-        return _olsync_list(cookie_path=config.ols_cookie_path).model_dump()
+        return _olsync_list(
+            config.project_root,
+            cookie_path=config.ols_cookie_path,
+        ).model_dump()
 
     @_register(
         "olsync_login_instructions",

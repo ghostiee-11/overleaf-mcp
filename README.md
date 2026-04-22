@@ -105,8 +105,9 @@ Any client that speaks the MCP stdio transport works — adjust the config path 
 - `compile` (wraps `latexmk`)
 - `explain_log` (parses any LaTeX log into structured errors)
 
-**Free-tier bi-directional sync (recommended)** — requires `overleaf-sync`
-- `olsync_pull`, `olsync_push`, `olsync_list_projects`, `olsync_login_instructions`
+**Free-tier read-only sync** — requires `overleaf-sync` (for login only)
+- `olsync_list_projects`, `olsync_pull`, `olsync_login_instructions`
+- `olsync_push` is stubbed — Overleaf moved to socket.io v4 in 2024; a native v4 client is pending. Use `export_overleaf_zip` + Overleaf's **Upload Project** for the return trip.
 
 **Overleaf sync (Premium git integration)**
 - `pull_from_overleaf`, `push_to_overleaf`, `overleaf_status`
@@ -114,26 +115,32 @@ Any client that speaks the MCP stdio transport works — adjust the config path 
 **ZIP bridge (manual fallback)**
 - `import_overleaf_zip`, `export_overleaf_zip`
 
-## Free-tier sync workflow (recommended)
+## Free-tier workflow (read + manual write)
 
 One-time setup:
 
 ```bash
 uv tool install overleaf-sync   # or: pipx install overleaf-sync
 cd /path/to/your/local/project
-ols login                        # opens browser, stores cookie
+ols login                        # opens browser, stores cookie in ./.olauth
 ```
 
 Set `OVERLEAF_PROJECT_ROOT=/path/to/your/local/project` and `OVERLEAF_PROJECT_NAME="Your Overleaf Project Name"` in the MCP config. Then:
 
-| Task | Tell the agent |
-|---|---|
-| Pull latest from Overleaf | *"Run olsync_pull"* |
-| Edit, format, check locally | regular tools |
-| Push changes back to Overleaf | *"Run olsync_push"* |
-| See your available projects | *"Run olsync_list_projects"* |
+| Task | Tell the agent | How it works |
+|---|---|---|
+| List your Overleaf projects | *"Run olsync_list_projects"* | GET /user/projects |
+| Pull latest from Overleaf | *"Run olsync_pull"* | Downloads project zip, extracts to project_root |
+| Edit, format, check locally | regular tools | Pure local ops |
+| Push back to Overleaf | ⚠️ not yet supported natively | See below |
 
-Your existing Overleaf project updates in place — same URL, collaborators see your changes, no new-project churn.
+**Getting changes back to Overleaf (free tier):**
+Overleaf changed their upload protocol to socket.io v4, and the community tool's websocket client is too old to speak it. Until the MCP ships a native v4 client, use one of:
+
+1. **Copy-paste per file** — open the Overleaf web editor, paste the new contents. Works for small edits.
+2. **ZIP re-upload** — call `export_overleaf_zip`, then **Overleaf → New Project → Upload Project**. Creates a fresh project from the zip (good for major rewrites; loses the old project's comments/history).
+
+If you need true in-place bi-directional sync today, Overleaf Premium's git integration is the only officially supported path — configure with `OVERLEAF_GIT_URL` / `OVERLEAF_GIT_TOKEN` and use the `pull_from_overleaf` / `push_to_overleaf` tools.
 
 ## Free-tier manual ZIP round-trip (fallback)
 

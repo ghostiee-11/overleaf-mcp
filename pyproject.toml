@@ -8,6 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "overleaf-mcp contributors" }]
 dependencies = [
     "mcp>=1.0.0",
+    "overleaf-sync>=1.2.0",
     "pydantic>=2.6",
 ]
 

@@ -1,114 +1,154 @@
-"""Tests for the overleaf-sync wrapper tools.
-
-Uses mocked subprocess — we never call the real ols binary to avoid network and
-to run in CI without credentials.
-"""
+"""Tests for the native olsync client (patched project lookup + downloads)."""
+import io
+import pickle
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from overleaf_mcp import capability
 from overleaf_mcp.tools import olsync
 
 
-class _FakeResult:
-    def __init__(self, returncode: int, stdout: str = "", stderr: str = ""):
-        self.returncode = returncode
-        self.stdout = stdout
-        self.stderr = stderr
+@pytest.fixture
+def fake_cookie(tmp_path: Path) -> Path:
+    """Write a pickle at tmp_path/.olauth that looks like overleaf-sync's format."""
+    (tmp_path / ".olauth").write_bytes(
+        pickle.dumps({"cookie": {"overleaf_session2": "abc"}, "csrf": "xyz"})
+    )
+    return tmp_path / ".olauth"
 
 
-@pytest.fixture(autouse=True)
-def _mock_ols_available(monkeypatch):
-    """Pretend `ols` is installed regardless of host machine."""
-    capability.reset_capability_cache()
-    cap_dict = {
-        "latexindent": capability.Capability(available=False, suggestion="x"),
-        "chktex": capability.Capability(available=False, suggestion="x"),
-        "latexmk": capability.Capability(available=False, suggestion="x"),
-        "ols": capability.Capability(available=True, version="ols, version 1.2.0"),
+class _FakeResp:
+    def __init__(self, status=200, payload=None, content=b""):
+        self.status_code = status
+        self._payload = payload
+        self.content = content
+
+    def json(self):
+        if self._payload is None:
+            raise ValueError("no json")
+        return self._payload
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"http {self.status_code}")
+
+
+def test_list_projects_parses_user_projects_endpoint(tmp_path, fake_cookie):
+    payload = {
+        "projects": [
+            {"_id": "abc", "name": "Paper", "accessLevel": "owner"},
+            {"_id": "def", "name": "Thesis 2026", "accessLevel": "readAndWrite"},
+        ]
     }
-    monkeypatch.setattr(capability, "_cache", cap_dict)
-    yield
-    capability.reset_capability_cache()
 
+    def fake_get(url, **kwargs):
+        assert url.endswith("/user/projects")
+        return _FakeResp(200, payload)
 
-def test_pull_calls_ols_with_remote_only(tmp_path: Path):
-    calls = []
-
-    def fake_run(args, **kwargs):
-        calls.append(args)
-        return _FakeResult(returncode=0, stdout="Remote files synced.\n")
-
-    with patch("overleaf_mcp.tools.olsync.subprocess.run", side_effect=fake_run):
-        r = olsync.olsync_pull(tmp_path, project_name="My Project")
+    with patch("overleaf_mcp.tools.olsync.requests.get", side_effect=fake_get):
+        r = olsync.olsync_list_projects(tmp_path)
     assert r.ok is True
-    assert r.data["action"] == "pull"
-    # Exactly one ols invocation, with -r / --remote-only, -n, -p
-    assert len(calls) == 1
-    argv = calls[0]
-    assert argv[0] == "ols"
-    assert "--remote-only" in argv
-    assert "-n" in argv and "My Project" in argv
-    assert "-p" in argv and str(tmp_path) in argv
+    names = [p["name"] for p in r.data["projects"]]
+    assert names == ["Paper", "Thesis 2026"]
+    assert r.data["projects"][0]["id"] == "abc"
 
 
-def test_push_calls_ols_with_local_only(tmp_path: Path):
-    calls = []
-
-    def fake_run(args, **kwargs):
-        calls.append(args)
-        return _FakeResult(returncode=0, stdout="Pushed.\n")
-
-    with patch("overleaf_mcp.tools.olsync.subprocess.run", side_effect=fake_run):
-        r = olsync.olsync_push(tmp_path, project_name="MyProj", cookie_path="/tmp/olauth")
-    assert r.ok is True
-    assert r.data["action"] == "push"
-    argv = calls[0]
-    assert "--local-only" in argv
-    assert "--store-path" in argv and "/tmp/olauth" in argv
-
-
-def test_pull_reports_failure_with_suggestion(tmp_path: Path):
-    def fake_run(args, **kwargs):
-        return _FakeResult(returncode=1, stderr="Login expired\n")
-
-    with patch("overleaf_mcp.tools.olsync.subprocess.run", side_effect=fake_run):
-        r = olsync.olsync_pull(tmp_path, project_name="P")
+def test_list_reports_missing_cookie(tmp_path):
+    r = olsync.olsync_list_projects(tmp_path)
     assert r.ok is False
-    assert "Login expired" in r.error
+    assert "cookie not found" in r.error
     assert "ols login" in (r.suggestion or "")
 
 
-def test_list_projects_parses_stdout_lines():
-    def fake_run(args, **kwargs):
-        return _FakeResult(returncode=0, stdout="My Paper\nThesis 2026\n")
-
-    with patch("overleaf_mcp.tools.olsync.subprocess.run", side_effect=fake_run):
-        r = olsync.olsync_list_projects()
-    assert r.ok is True
-    assert r.data["projects"] == ["My Paper", "Thesis 2026"]
-
-
-def test_returns_install_hint_when_ols_missing(tmp_path: Path, monkeypatch):
-    cap_dict = {
-        "latexindent": capability.Capability(available=False, suggestion="x"),
-        "chktex": capability.Capability(available=False, suggestion="x"),
-        "latexmk": capability.Capability(available=False, suggestion="x"),
-        "ols": capability.Capability(
-            available=False, suggestion="install overleaf-sync"
-        ),
-    }
-    monkeypatch.setattr(capability, "_cache", cap_dict)
-    r = olsync.olsync_pull(tmp_path, project_name="x")
+def test_pull_requires_project_name(tmp_path, fake_cookie):
+    r = olsync.olsync_pull(tmp_path)
     assert r.ok is False
-    assert "ols" in r.error.lower() or "overleaf-sync" in r.error.lower()
-    assert r.suggestion == "install overleaf-sync"
+    assert "project_name is required" in r.error
 
 
-def test_login_instructions_returned_even_without_ols():
-    # Login instructions are informational — should work regardless.
+def test_pull_extracts_downloaded_zip(tmp_path, fake_cookie):
+    # Build a fake zip containing main.tex + chapters/intro.tex
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("main.tex", b"\\documentclass{article}\n")
+        zf.writestr("chapters/intro.tex", b"Hello.\n")
+    zip_bytes = buf.getvalue()
+
+    projects_payload = {
+        "projects": [{"_id": "ID123", "name": "MyProject", "accessLevel": "owner"}]
+    }
+
+    def fake_get(url, **kwargs):
+        if url.endswith("/user/projects"):
+            return _FakeResp(200, projects_payload)
+        if "/download/zip" in url:
+            assert "ID123" in url
+            return _FakeResp(200, content=zip_bytes)
+        raise AssertionError(f"unexpected URL {url}")
+
+    with patch("overleaf_mcp.tools.olsync.requests.get", side_effect=fake_get):
+        r = olsync.olsync_pull(tmp_path, project_name="MyProject")
+
+    assert r.ok is True
+    assert r.data["files_extracted"] == 2
+    assert (tmp_path / "main.tex").read_text() == "\\documentclass{article}\n"
+    assert (tmp_path / "chapters" / "intro.tex").read_text() == "Hello.\n"
+
+
+def test_pull_rejects_zip_slip(tmp_path, fake_cookie):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("../escape.tex", b"bad")
+    zip_bytes = buf.getvalue()
+
+    projects_payload = {
+        "projects": [{"_id": "ID1", "name": "P", "accessLevel": "owner"}]
+    }
+
+    def fake_get(url, **kwargs):
+        if url.endswith("/user/projects"):
+            return _FakeResp(200, projects_payload)
+        return _FakeResp(200, content=zip_bytes)
+
+    with patch("overleaf_mcp.tools.olsync.requests.get", side_effect=fake_get):
+        r = olsync.olsync_pull(tmp_path, project_name="P")
+    assert r.ok is False
+    assert "unsafe" in r.error or "escape" in r.error
+
+
+def test_pull_reports_unknown_project_with_available_list(tmp_path, fake_cookie):
+    payload = {"projects": [{"_id": "a", "name": "Paper", "accessLevel": "owner"}]}
+
+    def fake_get(url, **kwargs):
+        return _FakeResp(200, payload)
+
+    with patch("overleaf_mcp.tools.olsync.requests.get", side_effect=fake_get):
+        r = olsync.olsync_pull(tmp_path, project_name="Missing")
+    assert r.ok is False
+    assert "not found" in r.error
+    assert "Paper" in (r.suggestion or "")
+
+
+def test_list_reports_auth_failure_with_hint(tmp_path, fake_cookie):
+    def fake_get(url, **kwargs):
+        return _FakeResp(302)
+
+    with patch("overleaf_mcp.tools.olsync.requests.get", side_effect=fake_get):
+        r = olsync.olsync_list_projects(tmp_path)
+    assert r.ok is False
+    assert "ols login" in (r.suggestion or "")
+
+
+def test_login_instructions_always_available(tmp_path):
     r = olsync.olsync_login_instructions()
     assert r.ok is True
     assert "ols login" in " ".join(r.data["instructions"])
+
+
+def test_push_returns_clear_unsupported_error(tmp_path, fake_cookie):
+    r = olsync.olsync_push(tmp_path, project_name="Anything")
+    assert r.ok is False
+    assert "socket.io v4" in r.error
+    assert "export_overleaf_zip" in (r.suggestion or "")
