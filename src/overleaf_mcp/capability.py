@@ -7,6 +7,11 @@ _INSTALL_HINTS: dict[str, str] = {
     "latexindent": "Install via TeX Live or `brew install latexindent` (macOS).",
     "chktex": "Comes with TeX Live; on Debian/Ubuntu: `apt install chktex`.",
     "latexmk": "Comes with TeX Live; on macOS: `brew install --cask mactex`.",
+    "ols": (
+        "overleaf-sync gives free-tier users bi-directional Overleaf sync. "
+        "Install with `uv tool install overleaf-sync` or `pipx install overleaf-sync`, "
+        "then run `ols login` once to authenticate."
+    ),
 }
 
 
@@ -46,6 +51,7 @@ def detect_capabilities() -> dict[str, Capability]:
         "latexindent": _probe("latexindent", "--version"),
         "chktex": _probe("chktex", "--version"),
         "latexmk": _probe("latexmk", "-v"),
+        "ols": _probe("ols", "--version"),
     }
     return _cache
 

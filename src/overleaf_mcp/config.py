@@ -14,6 +14,8 @@ class Config:
     project_root: Path
     git_url: str | None
     git_token: str | None
+    ols_project_name: str | None
+    ols_cookie_path: str | None
 
 
 def load_config(env: Mapping[str, str]) -> ToolResult[Config]:
@@ -28,5 +30,16 @@ def load_config(env: Mapping[str, str]) -> ToolResult[Config]:
         return fail(f"project root does not exist or is not a directory: {root}")
     git_url = env.get("OVERLEAF_GIT_URL") or None
     git_token = env.get("OVERLEAF_GIT_TOKEN") or None
+    ols_project_name = env.get("OVERLEAF_PROJECT_NAME") or None
+    ols_cookie_path = env.get("OVERLEAF_OLS_COOKIE") or None
     mode: Mode = "synced" if (git_url and git_token) else "local"
-    return ok(Config(mode=mode, project_root=root, git_url=git_url, git_token=git_token))
+    return ok(
+        Config(
+            mode=mode,
+            project_root=root,
+            git_url=git_url,
+            git_token=git_token,
+            ols_project_name=ols_project_name,
+            ols_cookie_path=ols_cookie_path,
+        )
+    )

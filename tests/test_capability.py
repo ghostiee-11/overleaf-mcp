@@ -7,7 +7,7 @@ def setup_function():
 
 def test_returns_all_keys():
     caps = detect_capabilities()
-    assert set(caps.keys()) == {"latexindent", "chktex", "latexmk"}
+    assert set(caps.keys()) == {"latexindent", "chktex", "latexmk", "ols"}
     for cap in caps.values():
         assert isinstance(cap.available, bool)
         if not cap.available:

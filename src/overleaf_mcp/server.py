@@ -19,6 +19,12 @@ from overleaf_mcp.tools.git_sync import overleaf_status as _overleaf_status
 from overleaf_mcp.tools.git_sync import pull_from_overleaf as _pull
 from overleaf_mcp.tools.git_sync import push_to_overleaf as _push
 from overleaf_mcp.tools.lint import lint_file
+from overleaf_mcp.tools.olsync import (
+    olsync_list_projects as _olsync_list,
+    olsync_login_instructions as _olsync_login_info,
+    olsync_pull as _olsync_pull,
+    olsync_push as _olsync_push,
+)
 from overleaf_mcp.tools.structure import get_project_structure as _get_project_structure
 from overleaf_mcp.tools.zip_bridge import export_overleaf_zip as _export_zip
 from overleaf_mcp.tools.zip_bridge import import_overleaf_zip as _import_zip
@@ -165,5 +171,45 @@ def build_server(env: Mapping[str, str]) -> tuple[FastMCP, Config, list[str]]:
         @_register("overleaf_status", "Branch, ahead/behind, dirty state.")
         def _t_status() -> dict:
             return _overleaf_status(config.project_root).model_dump()
+
+    # overleaf-sync bridge — always registered; returns install-hint if `ols` missing.
+    # Gives free-tier users bi-directional sync with their existing Overleaf project.
+    @_register(
+        "olsync_pull",
+        "Pull the remote Overleaf project into project_root via overleaf-sync (free-tier).",
+    )
+    def _t_olsync_pull(project_name: str | None = None) -> dict:
+        name = project_name or config.ols_project_name
+        return _olsync_pull(
+            config.project_root,
+            project_name=name,
+            cookie_path=config.ols_cookie_path,
+        ).model_dump()
+
+    @_register(
+        "olsync_push",
+        "Push local project_root changes to Overleaf via overleaf-sync (free-tier).",
+    )
+    def _t_olsync_push(project_name: str | None = None) -> dict:
+        name = project_name or config.ols_project_name
+        return _olsync_push(
+            config.project_root,
+            project_name=name,
+            cookie_path=config.ols_cookie_path,
+        ).model_dump()
+
+    @_register(
+        "olsync_list_projects",
+        "List Overleaf projects visible to the logged-in ols session.",
+    )
+    def _t_olsync_list() -> dict:
+        return _olsync_list(cookie_path=config.ols_cookie_path).model_dump()
+
+    @_register(
+        "olsync_login_instructions",
+        "Return manual steps to run `ols login` (interactive — not automatable from MCP).",
+    )
+    def _t_olsync_login_info() -> dict:
+        return _olsync_login_info().model_dump()
 
     return server, config, tool_names

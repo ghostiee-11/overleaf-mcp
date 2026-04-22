@@ -29,6 +29,11 @@ def test_local_mode_has_base_tools_and_zip_but_not_sync(tmp_path: Path):
         # ZIP bridge — always present
         "import_overleaf_zip",
         "export_overleaf_zip",
+        # overleaf-sync bridge — always registered, graceful-degrades if ols missing
+        "olsync_pull",
+        "olsync_push",
+        "olsync_list_projects",
+        "olsync_login_instructions",
     }
     assert expected.issubset(set(tool_names))
     # Git sync tools must NOT be present in local mode

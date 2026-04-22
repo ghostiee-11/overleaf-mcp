@@ -23,8 +23,32 @@ The MCP starts with whatever tools are present. Install what you want:
 | `latexindent` | formatting | `brew install latexindent` | `apt install texlive-extra-utils` | bundled with MikTeX / TeX Live |
 | `chktex` | linting | `brew install chktex` | `apt install chktex` | bundled |
 | `latexmk` | compiling | `brew install --cask mactex` (full) | `apt install latexmk` | bundled |
+| `overleaf-sync` | **free-tier bi-directional Overleaf sync** (recommended) | `uv tool install overleaf-sync` | `uv tool install overleaf-sync` | `pipx install overleaf-sync` |
 
 Or install everything at once: `brew install --cask mactex` (macOS) / `apt install texlive-full` (Debian).
+
+### Onboarding for free-tier users (most common case)
+
+After adding the MCP to your client, set yourself up for bi-directional Overleaf sync without paying for Premium:
+
+```bash
+# 1. Install overleaf-sync
+uv tool install overleaf-sync      # recommended
+# or:  pipx install overleaf-sync
+
+# 2. Log into Overleaf ONCE (opens a browser window; cookie saved to ./.olauth)
+cd /path/to/your/local/project
+ols login
+
+# 3. Verify you see your projects
+ols list
+```
+
+Then tell the agent things like:
+- *"Pull my Overleaf project named 'My Thesis' using olsync_pull."*
+- *"Push my changes back to Overleaf using olsync_push."*
+
+The agent uses the stored cookie — no credentials pass through any config file.
 
 ## MCP client configuration
 
@@ -39,12 +63,15 @@ Edit `~/.claude/mcp.json`:
       "command": "uvx",
       "args": ["overleaf-mcp"],
       "env": {
-        "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/project"
+        "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/project",
+        "OVERLEAF_PROJECT_NAME": "My Thesis"
       }
     }
   }
 }
 ```
+
+`OVERLEAF_PROJECT_NAME` is optional — it sets a default so `olsync_pull`/`olsync_push` work without arguments. You can always override it per-call.
 
 ### GitHub Copilot (with MCP support)
 
@@ -57,8 +84,9 @@ Any client that speaks the MCP stdio transport works — adjust the config path 
 ## Modes
 
 - **Local** (default): set `OVERLEAF_PROJECT_ROOT`. Works offline. Free for everyone.
-- **Overleaf-synced** (Overleaf Premium): also set `OVERLEAF_GIT_URL` and `OVERLEAF_GIT_TOKEN`. Enables `pull_from_overleaf` / `push_to_overleaf`.
-- **ZIP-bridge** (free-tier round-trip): use `import_overleaf_zip` / `export_overleaf_zip` with Overleaf's **Download → Source** and **Upload Project**.
+- **Free-tier bi-directional sync** *(recommended for free accounts)*: install `overleaf-sync`, run `ols login` once. Enables `olsync_pull` / `olsync_push` — updates an existing Overleaf project in place, no paid subscription needed. Uses Overleaf's unofficial session API (an open-source tool used by thousands of users for years).
+- **Overleaf-synced** (Premium git integration): set `OVERLEAF_GIT_URL` and `OVERLEAF_GIT_TOKEN`. Enables `pull_from_overleaf` / `push_to_overleaf`.
+- **ZIP-bridge** (always available, manual): use `import_overleaf_zip` / `export_overleaf_zip` with Overleaf's **Download → Source** and **Upload Project**.
 
 ## Tools
 
@@ -77,19 +105,45 @@ Any client that speaks the MCP stdio transport works — adjust the config path 
 - `compile` (wraps `latexmk`)
 - `explain_log` (parses any LaTeX log into structured errors)
 
-**Overleaf sync (Premium)**
+**Free-tier bi-directional sync (recommended)** — requires `overleaf-sync`
+- `olsync_pull`, `olsync_push`, `olsync_list_projects`, `olsync_login_instructions`
+
+**Overleaf sync (Premium git integration)**
 - `pull_from_overleaf`, `push_to_overleaf`, `overleaf_status`
 
-**ZIP bridge (free-tier)**
+**ZIP bridge (manual fallback)**
 - `import_overleaf_zip`, `export_overleaf_zip`
 
-## Free-tier round-trip
+## Free-tier sync workflow (recommended)
+
+One-time setup:
+
+```bash
+uv tool install overleaf-sync   # or: pipx install overleaf-sync
+cd /path/to/your/local/project
+ols login                        # opens browser, stores cookie
+```
+
+Set `OVERLEAF_PROJECT_ROOT=/path/to/your/local/project` and `OVERLEAF_PROJECT_NAME="Your Overleaf Project Name"` in the MCP config. Then:
+
+| Task | Tell the agent |
+|---|---|
+| Pull latest from Overleaf | *"Run olsync_pull"* |
+| Edit, format, check locally | regular tools |
+| Push changes back to Overleaf | *"Run olsync_push"* |
+| See your available projects | *"Run olsync_list_projects"* |
+
+Your existing Overleaf project updates in place — same URL, collaborators see your changes, no new-project churn.
+
+## Free-tier manual ZIP round-trip (fallback)
+
+If you prefer not to use `overleaf-sync`:
 
 1. Overleaf project → **Menu → Download → Source** (zip).
 2. Agent: `import_overleaf_zip {"zip_path": "/path/to/download.zip"}`.
 3. Agent uses format/lint/check tools on the local copy.
 4. Agent: `export_overleaf_zip {"out_path": "/tmp/out.zip"}`.
-5. Overleaf → **New Project → Upload Project** → choose the zip.
+5. Overleaf → **New Project → Upload Project** → choose the zip (creates a *new* project).
 
 ## Security
 
