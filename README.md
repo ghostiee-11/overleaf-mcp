@@ -52,4 +52,10 @@ Add to your MCP client config (example: Claude Code `~/.claude/mcp.json`):
 - `check_math`, `check_figures`, `check_table`, `suggest_table_fix`
 - `check_packages`, `check_consistency`, `find_unused_labels_and_refs`
 
-Compile tools and Overleaf sync arrive in later releases.
+**Compile:**
+- `compile` — run `latexmk` (requires TeX Live); returns PDF path or parsed errors with suggestions
+- `explain_log` — parse any LaTeX log text into structured errors + suggestions
+
+Compile writes to `.build/` inside your project root. If you don't have TeX Live installed, all other tools still work.
+
+Overleaf sync arrives in the next release.
