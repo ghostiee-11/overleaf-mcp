@@ -21,13 +21,16 @@ def compile_file(project_root: Path, rel_path: str) -> ToolResult[dict[str, Any]
     out_dir = project_root / ".build"
     out_dir.mkdir(exist_ok=True)
 
+    # We deliberately omit -halt-on-error. With nonstopmode latexmk still exits with
+    # non-zero on errors, but allows pdflatex to finish the run and write a complete
+    # .log file that explain_log can parse. With -halt-on-error, pdflatex can abort
+    # before the log is fully flushed on some platforms (observed on Ubuntu TeX Live).
     result = subprocess.run(
         [
             "latexmk",
             "-pdf",
             "-interaction=nonstopmode",
             "-file-line-error",
-            "-halt-on-error",
             f"-outdir={out_dir}",
             str(target),
         ],
