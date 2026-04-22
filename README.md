@@ -58,4 +58,19 @@ Add to your MCP client config (example: Claude Code `~/.claude/mcp.json`):
 
 Compile writes to `.build/` inside your project root. If you don't have TeX Live installed, all other tools still work.
 
-Overleaf sync arrives in the next release.
+**Overleaf sync (Premium):**
+- `pull_from_overleaf`, `push_to_overleaf`, `overleaf_status`
+
+Enable sync by setting `OVERLEAF_GIT_URL` (e.g., `https://git.overleaf.com/<id>`) and `OVERLEAF_GIT_TOKEN` (generate from Overleaf account → Git Integration). Token is injected via `GIT_ASKPASS` — never placed in URLs, argv, or logs.
+
+**ZIP bridge (free-tier):**
+- `import_overleaf_zip` — extract an Overleaf "Download as zip" export into the project
+- `export_overleaf_zip` — zip the project for re-upload via Overleaf's "Upload Project"
+
+## Free-tier round-trip
+
+1. On Overleaf, open your project → **Menu → Download → Source**.
+2. Tell the agent: `import_overleaf_zip {"zip_path": "/path/to/download.zip"}`.
+3. Use the format/lint/check tools on the local copy.
+4. Agent: `export_overleaf_zip {"out_path": "/tmp/out.zip"}`.
+5. Overleaf → **New Project → Upload Project** → choose the zip.
