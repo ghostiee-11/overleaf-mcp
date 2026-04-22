@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" font-family="ui-sans-serif, -apple-system, 'SF Pro Text', 'Segoe UI', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#111d33"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#4dd0ff"/>
+      <stop offset="1" stop-color="#7b8cff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#4dd0ff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#4dd0ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="360" rx="16" fill="url(#bg)"/>
+  <rect width="1200" height="360" rx="16" fill="url(#glow)"/>
+
+  <!-- small grid pattern -->
+  <g stroke="#1c2a45" stroke-width="0.5" opacity="0.55">
+    <path d="M0 40 L1200 40 M0 80 L1200 80 M0 120 L1200 120 M0 160 L1200 160 M0 200 L1200 200 M0 240 L1200 240 M0 280 L1200 280 M0 320 L1200 320"/>
+    <path d="M40 0 L40 360 M120 0 L120 360 M200 0 L200 360 M280 0 L280 360 M360 0 L360 360 M440 0 L440 360 M520 0 L520 360 M600 0 L600 360 M680 0 L680 360 M760 0 L760 360 M840 0 L840 360 M920 0 L920 360 M1000 0 L1000 360 M1080 0 L1080 360 M1160 0 L1160 360"/>
+  </g>
+
+  <!-- Title -->
+  <text x="60" y="120" font-size="64" font-weight="800" fill="#ffffff" letter-spacing="-1.5">overleaf-mcp</text>
+  <rect x="60" y="132" width="120" height="6" rx="3" fill="url(#accent)"/>
+
+  <!-- Tagline -->
+  <text x="60" y="180" font-size="22" fill="#b9c6dd" font-weight="500">
+    Fix your LaTeX with AI — from any MCP-enabled agent, directly against Overleaf.
+  </text>
+
+  <!-- Feature chips -->
+  <g font-size="13" font-weight="600">
+    <g transform="translate(60, 216)">
+      <rect width="150" height="28" rx="14" fill="#1a2640" stroke="#2a3a5c"/>
+      <text x="75" y="18" text-anchor="middle" fill="#cfe0ff">24 MCP tools</text>
+    </g>
+    <g transform="translate(222, 216)">
+      <rect width="210" height="28" rx="14" fill="#1a2640" stroke="#2a3a5c"/>
+      <text x="105" y="18" text-anchor="middle" fill="#cfe0ff">Bi-directional free-tier sync</text>
+    </g>
+    <g transform="translate(444, 216)">
+      <rect width="175" height="28" rx="14" fill="#1a2640" stroke="#2a3a5c"/>
+      <text x="87" y="18" text-anchor="middle" fill="#cfe0ff">7 static checks, no deps</text>
+    </g>
+    <g transform="translate(631, 216)">
+      <rect width="150" height="28" rx="14" fill="#1a2640" stroke="#2a3a5c"/>
+      <text x="75" y="18" text-anchor="middle" fill="#cfe0ff">Python 3.11+</text>
+    </g>
+    <g transform="translate(793, 216)">
+      <rect width="160" height="28" rx="14" fill="#1a2640" stroke="#2a3a5c"/>
+      <text x="80" y="18" text-anchor="middle" fill="#cfe0ff">81 tests green</text>
+    </g>
+  </g>
+
+  <!-- Right-side flow diagram -->
+  <g transform="translate(740, 60)" font-size="13">
+    <!-- Claude Code box -->
+    <rect x="0" y="10" width="150" height="50" rx="8" fill="#1a2640" stroke="#4dd0ff" stroke-width="1.5"/>
+    <text x="75" y="32" text-anchor="middle" fill="#ffffff" font-weight="600">Claude Code</text>
+    <text x="75" y="50" text-anchor="middle" fill="#7f93b3" font-size="11">(or any MCP client)</text>
+
+    <!-- arrow right -->
+    <path d="M150 35 L215 35" stroke="url(#accent)" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <!-- overleaf-mcp box -->
+    <rect x="215" y="10" width="180" height="50" rx="8" fill="#1a2640" stroke="#7b8cff" stroke-width="1.5"/>
+    <text x="305" y="32" text-anchor="middle" fill="#ffffff" font-weight="700">overleaf-mcp</text>
+    <text x="305" y="50" text-anchor="middle" fill="#7f93b3" font-size="11">stdio server</text>
+
+    <!-- down to tools -->
+    <path d="M305 60 L305 95" stroke="url(#accent)" stroke-width="2.5"/>
+    <rect x="215" y="95" width="180" height="60" rx="8" fill="#0f1a2e" stroke="#2a3a5c"/>
+    <text x="305" y="115" text-anchor="middle" fill="#cfe0ff" font-size="11">check_math · check_figures</text>
+    <text x="305" y="131" text-anchor="middle" fill="#cfe0ff" font-size="11">check_packages · find_unused_…</text>
+    <text x="305" y="147" text-anchor="middle" fill="#cfe0ff" font-size="11">olsync_pull · olsync_push · …</text>
+
+    <!-- right arrow to Overleaf -->
+    <path d="M395 120 L440 120 L440 35 L405 35" stroke="url(#accent)" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+    <!-- Overleaf -->
+    <rect x="345" y="185" width="160" height="50" rx="8" fill="#1a2640" stroke="#4dd0ff" stroke-width="1.5"/>
+    <text x="425" y="207" text-anchor="middle" fill="#ffffff" font-weight="600">Your Overleaf</text>
+    <text x="425" y="225" text-anchor="middle" fill="#7f93b3" font-size="11">(free or Premium)</text>
+    <path d="M305 155 L305 185 L345 200" stroke="url(#accent)" stroke-width="2.5" fill="none" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- arrow marker -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7b8cff"/>
+    </marker>
+  </defs>
+
+  <!-- Footer -->
+  <text x="60" y="325" font-size="13" fill="#7f93b3">Local mode · ZIP bridge · Free-tier native sync · Overleaf Premium git</text>
+</svg>
