@@ -1,28 +1,36 @@
 # overleaf-mcp
 
-Model Context Protocol server for LaTeX / Overleaf project formatting and linting. Works with Claude Code, GitHub Copilot, Google Antigravity, and any MCP-compatible client.
+Model Context Protocol server for LaTeX and Overleaf projects. Give Claude Code, GitHub Copilot, Google Antigravity, or any MCP-compatible AI the ability to read, format, lint, compile, and sync your LaTeX work.
 
 ## Install
 
-Needs Python 3.11+. Easiest launcher is `uv` / `uvx`:
+### The MCP server (Python 3.11+)
 
 ```bash
-# Try it without installing globally
-uvx overleaf-mcp --help
+# Run without installing
+uvx overleaf-mcp
 
-# Or install with pipx
+# Or install persistently
 pipx install overleaf-mcp
 ```
 
-To use formatting and linting, also install the LaTeX tools:
+### LaTeX tools (optional, unlocks more features)
 
-- macOS: `brew install --cask mactex` (full) or `brew install latexindent chktex` (minimal)
-- Debian/Ubuntu: `apt install texlive-extra-utils chktex`
-- Windows: install MikTeX or TeX Live
+The MCP starts with whatever tools are present. Install what you want:
 
-## Configure
+| Tool | Unlocks | macOS | Ubuntu/Debian | Windows |
+|---|---|---|---|---|
+| `latexindent` | formatting | `brew install latexindent` | `apt install texlive-extra-utils` | bundled with MikTeX / TeX Live |
+| `chktex` | linting | `brew install chktex` | `apt install chktex` | bundled |
+| `latexmk` | compiling | `brew install --cask mactex` (full) | `apt install latexmk` | bundled |
 
-Add to your MCP client config (example: Claude Code `~/.claude/mcp.json`):
+Or install everything at once: `brew install --cask mactex` (macOS) / `apt install texlive-full` (Debian).
+
+## MCP client configuration
+
+### Claude Code
+
+Edit `~/.claude/mcp.json`:
 
 ```json
 {
@@ -31,46 +39,65 @@ Add to your MCP client config (example: Claude Code `~/.claude/mcp.json`):
       "command": "uvx",
       "args": ["overleaf-mcp"],
       "env": {
-        "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/your/latex/project"
+        "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/project"
       }
     }
   }
 }
 ```
 
-## Tools (v0.2)
+### GitHub Copilot (with MCP support)
 
-**File/project:**
-- `detect_capabilities`, `list_tex_files`, `read_tex_file`, `write_tex_file`
-- `get_project_structure`
+Same block in `.vscode/mcp.json` or the global Copilot MCP settings.
 
-**Formatting & linting:**
+### Google Antigravity / other MCP clients
+
+Any client that speaks the MCP stdio transport works — adjust the config path per the client's docs.
+
+## Modes
+
+- **Local** (default): set `OVERLEAF_PROJECT_ROOT`. Works offline. Free for everyone.
+- **Overleaf-synced** (Overleaf Premium): also set `OVERLEAF_GIT_URL` and `OVERLEAF_GIT_TOKEN`. Enables `pull_from_overleaf` / `push_to_overleaf`.
+- **ZIP-bridge** (free-tier round-trip): use `import_overleaf_zip` / `export_overleaf_zip` with Overleaf's **Download → Source** and **Upload Project**.
+
+## Tools
+
+**File/project**
+- `detect_capabilities`, `list_tex_files`, `read_tex_file`, `write_tex_file`, `get_project_structure`
+
+**Formatting & linting**
 - `format_file`, `format_snippet`, `check_formatting` (wraps `latexindent`)
 - `lint_file` (wraps `chktex`)
 
-**Static checks:**
+**Static checks**
 - `check_math`, `check_figures`, `check_table`, `suggest_table_fix`
 - `check_packages`, `check_consistency`, `find_unused_labels_and_refs`
 
-**Compile:**
-- `compile` — run `latexmk` (requires TeX Live); returns PDF path or parsed errors with suggestions
-- `explain_log` — parse any LaTeX log text into structured errors + suggestions
+**Compile**
+- `compile` (wraps `latexmk`)
+- `explain_log` (parses any LaTeX log into structured errors)
 
-Compile writes to `.build/` inside your project root. If you don't have TeX Live installed, all other tools still work.
-
-**Overleaf sync (Premium):**
+**Overleaf sync (Premium)**
 - `pull_from_overleaf`, `push_to_overleaf`, `overleaf_status`
 
-Enable sync by setting `OVERLEAF_GIT_URL` (e.g., `https://git.overleaf.com/<id>`) and `OVERLEAF_GIT_TOKEN` (generate from Overleaf account → Git Integration). Token is injected via `GIT_ASKPASS` — never placed in URLs, argv, or logs.
-
-**ZIP bridge (free-tier):**
-- `import_overleaf_zip` — extract an Overleaf "Download as zip" export into the project
-- `export_overleaf_zip` — zip the project for re-upload via Overleaf's "Upload Project"
+**ZIP bridge (free-tier)**
+- `import_overleaf_zip`, `export_overleaf_zip`
 
 ## Free-tier round-trip
 
-1. On Overleaf, open your project → **Menu → Download → Source**.
-2. Tell the agent: `import_overleaf_zip {"zip_path": "/path/to/download.zip"}`.
-3. Use the format/lint/check tools on the local copy.
+1. Overleaf project → **Menu → Download → Source** (zip).
+2. Agent: `import_overleaf_zip {"zip_path": "/path/to/download.zip"}`.
+3. Agent uses format/lint/check tools on the local copy.
 4. Agent: `export_overleaf_zip {"out_path": "/tmp/out.zip"}`.
 5. Overleaf → **New Project → Upload Project** → choose the zip.
+
+## Security
+
+- Every path tool validates that the target is inside `OVERLEAF_PROJECT_ROOT`.
+- Git tokens are injected via `GIT_ASKPASS` — never placed in URLs, argv, or logs.
+- ZIP extraction rejects entries that escape the root (zip-slip) or use absolute paths.
+- Subprocess calls use `shell=False` with argv lists — no string concatenation.
+
+## License
+
+MIT.
