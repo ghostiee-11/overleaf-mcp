@@ -29,7 +29,7 @@ Ship an npm-installable MCP server that exposes Overleaf-aware and LaTeX-aware t
 
 ### Runtime
 
-Node.js/TypeScript MCP server following the Model Context Protocol. Published to npm as `overleaf-mcp`. Invoked by MCP clients via `npx -y overleaf-mcp`.
+Python 3.11+ MCP server using the official `mcp` Python SDK. Published to PyPI as `overleaf-mcp`. Invoked by MCP clients via `uvx overleaf-mcp` (or `pipx run overleaf-mcp`). Project uses `uv` for dependency management and `pytest` for tests. Tool input schemas defined with `pydantic` v2.
 
 ### Operating modes (auto-detected)
 
@@ -51,7 +51,7 @@ At startup, probe for optional binaries and config:
 - Overleaf git env vars → enables sync tools
 - `.latexindent.yaml` / `chktexrc` in `project_root` → used if present; otherwise defaults shipped with MCP
 
-Missing capabilities produce a startup log line with install hints (`brew install …`, `apt install …`, MikTeX link). The server still starts; each unavailable tool returns `{ ok: false, error: "not installed", suggestion: "…" }` when called.
+Missing capabilities produce a startup log line (on stderr) with install hints (`brew install …`, `apt install …`, MikTeX link). The server still starts; each unavailable tool returns a `ToolResult` with `ok=False`, `error="not installed"`, and a `suggestion` pointing at install instructions.
 
 ### State model
 
@@ -128,8 +128,8 @@ All tools return structured `{ ok, data?, error?, suggestion? }`. File paths are
 {
   "mcpServers": {
     "overleaf": {
-      "command": "npx",
-      "args": ["-y", "overleaf-mcp"],
+      "command": "uvx",
+      "args": ["overleaf-mcp"],
       "env": {
         "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/project",
         "OVERLEAF_GIT_URL": "",
@@ -139,6 +139,8 @@ All tools return structured `{ ok, data?, error?, suggestion? }`. File paths are
   }
 }
 ```
+
+Alternative invocation: `"command": "pipx", "args": ["run", "overleaf-mcp"]` for users without `uv`.
 
 `OVERLEAF_PROJECT_ROOT` is required. The other two are optional; supplying them enables synced mode.
 
@@ -151,18 +153,18 @@ All tools return structured `{ ok, data?, error?, suggestion? }`. File paths are
 
 ## Error handling
 
-- Every tool returns `{ ok: boolean, data?, error?, suggestion? }`.
-- Missing binary → `ok: false`, `error: "latexindent not installed"`, `suggestion: "brew install latexindent"` (platform-specific).
-- Out-of-root path → hard error (security boundary).
-- Git errors → `ok: false`, sanitized stderr + hint.
-- File writes are atomic (write tmp file, `fs.rename`) to avoid corruption on crash.
+- Every tool returns a `ToolResult` pydantic model with fields `ok: bool`, `data: Any | None`, `error: str | None`, `suggestion: str | None`.
+- Missing binary → `ok=False`, `error="latexindent not installed"`, `suggestion="brew install latexindent"` (platform-specific).
+- Out-of-root path → returned as a failure (security boundary).
+- Git errors → `ok=False`, sanitized stderr + hint.
+- File writes are atomic (write tmp file via `tempfile.NamedTemporaryFile` then `os.replace`) to avoid corruption on crash.
 
 ## Security
 
-- `project_root` boundary enforced on every path argument; reject paths resolving outside.
+- `project_root` boundary enforced on every path argument via `Path.resolve()` + `is_relative_to()`; reject paths resolving outside.
 - Tokens never logged; redaction applied to any error surface that could include them.
-- No shell-string concatenation for subprocess invocation — use `execFile` with argv arrays.
-- ZIP extraction checks for path traversal (`..`) and absolute paths in archive entries.
+- No shell-string concatenation for subprocess invocation — use `subprocess.run([...], shell=False)` with argv lists.
+- ZIP extraction checks for path traversal (`..`) and absolute paths in archive entries before writing any file.
 
 ## Testing
 
@@ -173,10 +175,10 @@ All tools return structured `{ ok, data?, error?, suggestion? }`. File paths are
 
 ## Distribution
 
-- Published to npm as `overleaf-mcp`.
+- Published to PyPI as `overleaf-mcp`. Invoked in MCP client config via `uvx overleaf-mcp` or `pipx run overleaf-mcp`.
 - No bundled TeX binaries — users install `latexindent`/`chktex`/`latexmk` via their OS package manager or TeX distribution.
 - README includes: install steps per OS, MCP client config snippets (Claude Code, Copilot, Antigravity), free-tier ZIP workflow, Premium git workflow.
 
 ## Open questions
 
-None blocking. Package naming (`overleaf-mcp` vs. `@scope/overleaf-mcp`) to be decided at publish time based on npm availability.
+None blocking. Package naming on PyPI (`overleaf-mcp`) to be verified at publish time.
