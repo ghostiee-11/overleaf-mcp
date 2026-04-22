@@ -147,8 +147,69 @@ def test_login_instructions_always_available(tmp_path):
     assert "ols login" in " ".join(r.data["instructions"])
 
 
-def test_push_returns_clear_unsupported_error(tmp_path, fake_cookie):
-    r = olsync.olsync_push(tmp_path, project_name="Anything")
+def test_push_requires_project_name(tmp_path, fake_cookie):
+    r = olsync.olsync_push(tmp_path)
     assert r.ok is False
-    assert "socket.io v4" in r.error
-    assert "export_overleaf_zip" in (r.suggestion or "")
+    assert "project_name is required" in r.error
+
+
+def test_push_reports_missing_cookie(tmp_path):
+    r = olsync.olsync_push(tmp_path, project_name="X")
+    assert r.ok is False
+    assert "cookie not found" in r.error
+
+
+def test_push_uploads_each_top_level_file(tmp_path, fake_cookie, monkeypatch):
+    """End-to-end internal test with HTTP + websocket mocked at boundary."""
+    (tmp_path / "main.tex").write_bytes(b"\\documentclass{article}\n")
+    (tmp_path / "refs.bib").write_bytes(b"@article{x,title={y}}\n")
+    (tmp_path / ".DS_Store").write_bytes(b"ignore me")
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "chapters" / "intro.tex").write_bytes(b"nested\n")
+
+    projects_payload = {
+        "projects": [{"_id": "P1", "name": "MyProj", "accessLevel": "owner"}]
+    }
+    upload_calls: list[dict] = []
+    import overleaf_mcp.tools.olsync as mod
+
+    # Patch the module-level requests.get for _list_projects_json
+    monkeypatch.setattr(
+        mod.requests,
+        "get",
+        lambda *a, **k: _FakeResp(200, projects_payload),
+    )
+    # Patch the internal helpers directly — simpler than faking Session
+    monkeypatch.setattr(
+        mod,
+        "_fetch_fresh_csrf",
+        lambda _session, _pid: olsync.ok("FRESH_CSRF"),
+    )
+    monkeypatch.setattr(
+        mod,
+        "_fetch_project_tree",
+        lambda _session, _pid: olsync.ok({"rootFolder": [{"_id": "ROOT"}]}),
+    )
+
+    def fake_upload(session, project_id, csrf, folder_id, remote_name, content):
+        upload_calls.append({
+            "project_id": project_id,
+            "csrf": csrf,
+            "folder_id": folder_id,
+            "remote_name": remote_name,
+            "content": content,
+        })
+        return True, f"ent_{remote_name}"
+
+    monkeypatch.setattr(mod, "_upload_single_file", fake_upload)
+
+    r = olsync.olsync_push(tmp_path, project_name="MyProj")
+    assert r.ok is True, r.error
+    assert r.data["files_uploaded"] == 2  # main.tex + refs.bib
+    assert "chapters/" in r.data["skipped_nested_dirs"]
+    names = {c["remote_name"] for c in upload_calls}
+    assert names == {"main.tex", "refs.bib"}
+    for c in upload_calls:
+        assert c["folder_id"] == "ROOT"
+        assert c["csrf"] == "FRESH_CSRF"
+        assert c["project_id"] == "P1"
