@@ -7,7 +7,10 @@ from overleaf_mcp.tools.git_sync import overleaf_status, pull_from_overleaf, pus
 def _make_fake_remote(tmp_path: Path) -> tuple[Path, Path]:
     remote = tmp_path / "remote.git"
     remote.mkdir()
-    subprocess.run(["git", "init", "-q", "--bare"], cwd=remote, check=True)
+    # -b main so the bare repo's HEAD points at main. Without this, on systems where
+    # init.defaultBranch is master (older git, default Ubuntu), `git clone` of this
+    # bare repo checks out HEAD=master which has no commits, leaving working tree empty.
+    subprocess.run(["git", "init", "-q", "--bare", "-b", "main"], cwd=remote, check=True)
 
     seed = tmp_path / "seed"
     seed.mkdir()
