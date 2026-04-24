@@ -43,20 +43,31 @@ def compile_file(project_root: Path, rel_path: str) -> ToolResult[dict[str, Any]
 
     base = target.stem
     log_path = out_dir / f"{base}.log"
-    raw_log = ""
+    file_log = ""
     if log_path.exists():
         try:
-            raw_log = log_path.read_text(encoding="utf-8", errors="replace")
+            file_log = log_path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             pass
-    if not raw_log:
-        raw_log = (result.stdout or "") + "\n" + (result.stderr or "")
 
-    parsed = explain_log(raw_log)
+    # Feed both the .log file AND the subprocess stdout/stderr to the parser.
+    # On some TeX Live builds (observed on ubuntu-latest CI) latexmk surfaces
+    # error context on stdout rather than flushing it all into the .log file,
+    # so parsing only the .log can leave us with a successful-looking exit
+    # but empty errors list.
+    parse_input = (
+        (file_log or "")
+        + "\n"
+        + (result.stdout or "")
+        + "\n"
+        + (result.stderr or "")
+    )
+    parsed = explain_log(parse_input)
     if not parsed.ok:
         return fail("log parse failed")
 
     success = result.returncode == 0
+    raw_log = file_log or parse_input
     data: dict[str, Any] = {
         "success": success,
         "errors": parsed.data["errors"],
