@@ -1,0 +1,38 @@
+name: Publish to PyPI
+
+# Publishes the package to PyPI whenever a GitHub Release is published.
+# Tag the release `vX.Y.Z` (or `X.Y.Z`) matching the version in pyproject.toml.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Verify release tag matches pyproject version
+        run: |
+          VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/.*"(.*)".*/\1/')
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "pyproject version: $VERSION"
+          echo "release tag:       $GITHUB_REF_NAME (normalized: $TAG)"
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "::error::Release tag '$GITHUB_REF_NAME' does not match pyproject version '$VERSION'. Bump version in pyproject.toml (and src/overleaf_mcp/__init__.py) or retag."
+            exit 1
+          fi
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Publish to PyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: uv publish

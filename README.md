@@ -63,7 +63,7 @@ See [docs/demo.md](docs/demo.md) for a full 7-step transcript: list projects, pl
 
 ```bash
 # 1. Install this MCP server (stdio binary)
-uv tool install overleaf-mcp               # or:  pipx install overleaf-mcp
+uv tool install overleaf-latex-mcp         # or:  pipx install overleaf-latex-mcp
 
 # 2. Install overleaf-sync (used ONLY for the browser login, not for sync)
 uv tool install overleaf-sync              # or:  pipx install overleaf-sync
@@ -76,7 +76,7 @@ ols login
 claude mcp add overleaf \
   --env OVERLEAF_PROJECT_ROOT="$HOME/tex/my-project" \
   --env OVERLEAF_PROJECT_NAME="My Real Project" \
-  -- overleaf-mcp
+  -- overleaf-latex-mcp
 ```
 
 Now in any Claude Code chat:
@@ -93,10 +93,10 @@ The agent calls `olsync_pull`, then the static checkers, then `write_tex_file` w
 
 | Method | Command |
 |---|---|
-| **Run without installing** (recommended) | `uvx overleaf-mcp` |
-| Install globally with uv | `uv tool install overleaf-mcp` |
-| Install globally with pipx | `pipx install overleaf-mcp` |
-| From source | `git clone <this-repo> && cd overleaf-mcp && uv sync && uv run overleaf-mcp` |
+| **Run without installing** (recommended) | `uvx overleaf-latex-mcp` |
+| Install globally with uv | `uv tool install overleaf-latex-mcp` |
+| Install globally with pipx | `pipx install overleaf-latex-mcp` |
+| From source | `git clone <this-repo> && cd overleaf-mcp && uv sync && uv run overleaf-latex-mcp` |
 
 **Requires Python 3.11+.** No runtime deps beyond the `mcp` SDK, `pydantic`, `requests`, `websockets`, and `overleaf-sync` (used only for its browser login helper).
 
@@ -125,7 +125,7 @@ Run once on the CLI:
 claude mcp add overleaf \
   --env OVERLEAF_PROJECT_ROOT=/absolute/path/to/project \
   --env OVERLEAF_PROJECT_NAME="My Thesis" \
-  -- overleaf-mcp
+  -- overleaf-latex-mcp
 ```
 
 or add to `~/.claude.json` by hand:
@@ -134,7 +134,7 @@ or add to `~/.claude.json` by hand:
 {
   "mcpServers": {
     "overleaf": {
-      "command": "overleaf-mcp",
+      "command": "overleaf-latex-mcp",
       "env": {
         "OVERLEAF_PROJECT_ROOT": "/absolute/path/to/project",
         "OVERLEAF_PROJECT_NAME": "My Thesis"
@@ -415,7 +415,7 @@ Full dev setup and release process in [CONTRIBUTING.md](CONTRIBUTING.md).
 - **`check_bibliography`.** Validate BibTeX syntax, detect duplicate keys across files.
 - **`format_project`.** Run `latexindent` over every `.tex` in one shot.
 - **`fetch_bibtex`.** Pull BibTeX entries for a DOI or arXiv ID straight into `refs.bib`.
-- **PyPI release.** The package is structured and tested; first public release is imminent.
+- **PyPI.** Published as [`overleaf-latex-mcp`](https://pypi.org/project/overleaf-latex-mcp/); 
 
 ---
 
