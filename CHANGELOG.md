@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## 1.0.1 — 2026-07-06
+
+### Fixed
+
+- **Images now render on the PyPI project page.** The README referenced images
+  with repo-relative paths (`docs/*.png`), which PyPI cannot resolve. Switched to
+  absolute `raw.githubusercontent.com` URLs so the hero, screenshot, before/after,
+  architecture, and logo images display on both PyPI and GitHub.
+
 ## 1.0.0 — 2026-07-06
 
 First public release, published to PyPI as

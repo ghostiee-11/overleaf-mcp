@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/hero.png" alt="overleaf-mcp. AI agents for your LaTeX on Overleaf" width="100%">
+  <img src="https://raw.githubusercontent.com/ghostiee-11/overleaf-mcp/main/docs/hero.png" alt="overleaf-mcp. AI agents for your LaTeX on Overleaf" width="100%">
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@ It is the first MCP server that lets a free-tier Overleaf user do `pull -> edit 
 See [docs/demo.md](docs/demo.md) for a full 7-step transcript: list projects, plant 7 deliberate bugs, agent finds 10 findings across 5 checker tools, agent autonomously fixes every one, push back to Overleaf, independently verify on the server. Every query is a real `claude -p` invocation; every output is unedited.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="overleaf-mcp running through a full pull check fix push flow" width="92%">
+  <img src="https://raw.githubusercontent.com/ghostiee-11/overleaf-mcp/main/docs/screenshot.png" alt="overleaf-mcp running through a full pull check fix push flow" width="92%">
 </p>
 
 ---
@@ -247,7 +247,7 @@ The server auto-detects which modes are available based on your env vars and ins
 Static checks are one capability; the read, write, and sync tools let the agent do everything a LaTeX-savvy collaborator would: understand the project, draft content, rewrite for quality, apply templates, refactor structure, and enforce formatting.
 
 <p align="center">
-  <img src="docs/before-after.png" alt="Before and after: agent reads broken LaTeX, checks, reads, fixes, and writes a clean version" width="94%">
+  <img src="https://raw.githubusercontent.com/ghostiee-11/overleaf-mcp/main/docs/before-after.png" alt="Before and after: agent reads broken LaTeX, checks, reads, fixes, and writes a clean version" width="94%">
 </p>
 
 ### 1. Understanding your project (context-gathering)
@@ -351,7 +351,7 @@ A single prompt that exploits every layer:
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture.png" alt="Architecture: AI coding agent talks to overleaf-mcp over MCP stdio; overleaf-mcp talks to Overleaf over REST and WebSocket" width="96%">
+  <img src="https://raw.githubusercontent.com/ghostiee-11/overleaf-mcp/main/docs/architecture.png" alt="Architecture: AI coding agent talks to overleaf-mcp over MCP stdio; overleaf-mcp talks to Overleaf over REST and WebSocket" width="96%">
 </p>
 
 ```mermaid
@@ -422,7 +422,7 @@ Full dev setup and release process in [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 <p align="left">
-  <img src="docs/logo.png" alt="overleaf-mcp logo" width="120" align="right">
+  <img src="https://raw.githubusercontent.com/ghostiee-11/overleaf-mcp/main/docs/logo.png" alt="overleaf-mcp logo" width="120" align="right">
 </p>
 
 [MIT](LICENSE) © 2026 Aman Kumar. Free for personal and commercial use.
